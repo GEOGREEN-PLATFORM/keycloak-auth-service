@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: keycloak-auth-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${app.keycloak.server-url}/realms/${app.keycloak.realm}
+
+server:
+  port: {SERVER_PORT:8080}
+  servlet:
+    context-path: /auth
+
+app:
+  keycloak:
+    admin:
+      client-id:  ${KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
+      username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+      password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+      realm: ${KEYCLOAK_ADMIN_REALM:master}
+    realm: ${KEYCLOAK_REALM:geogreen}
+    server-url: ${KEYCLOAK_URL:http://localhost:8081}
