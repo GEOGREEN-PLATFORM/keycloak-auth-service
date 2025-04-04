@@ -6,10 +6,10 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RolesResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,16 +17,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RegistrationServiceImpl implements RegistrationService{
+public class RegistrationServiceImpl implements RegistrationService {
 
     @Value("${app.keycloak.realm}")
     private String realm;
     private final Keycloak keycloak;
+
 
     public void createUser(RegisterRequest newUserRecord) {
 
@@ -37,6 +39,7 @@ public class RegistrationServiceImpl implements RegistrationService{
         userRepresentation.setEmail(newUserRecord.getEmail());
         userRepresentation.setUsername(newUserRecord.getUsername());
         userRepresentation.setEmailVerified(false);
+
 
         CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
         credentialRepresentation.setValue(newUserRecord.getPassword());
@@ -58,9 +61,23 @@ public class RegistrationServiceImpl implements RegistrationService{
 
         log.info("New user has bee created");
 
-//        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(newUserRecord.getUsername(), true);
-//        UserRepresentation userRepresentation1 = userRepresentations.get(0);
+        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(newUserRecord.getUsername(), true);
+        UserRepresentation userRepresentation1 = userRepresentations.get(0);
 //        sendVerificationEmail(userRepresentation1.getId());
+
+        var client = keycloak.realm(realm).clients().findByClientId("user-client").getFirst();
+        var clientRole = keycloak.realm(realm).clients()
+                .get(client.getId())
+                .roles().list();
+        List<RoleRepresentation> rolesToAdd = clientRole.stream()
+                .filter(role -> role.getName().equals("user"))
+                .collect(Collectors.toList());
+
+        keycloak.realm(realm).users()
+                .get(userRepresentation1.getId())
+                .roles()
+                .clientLevel(client.getId())
+                .add(rolesToAdd);
     }
 
     @Override
@@ -78,6 +95,10 @@ public class RegistrationServiceImpl implements RegistrationService{
     }
 
 
+    private RolesResource getRolesResource() {
+
+        return keycloak.realm(realm).roles();
+    }
 
     public void deleteUser(String userId) {
         UsersResource usersResource = getUsersResource();
@@ -100,19 +121,6 @@ public class RegistrationServiceImpl implements RegistrationService{
         return usersResource.get(userId);
     }
 
-
-    public List<RoleRepresentation> getUserRoles(String userId) {
-
-
-        return getUser(userId).roles().realmLevel().listAll();
-    }
-
-
-    public List<GroupRepresentation> getUserGroups(String userId) {
-
-
-        return getUser(userId).groups();
-    }
 
     private UsersResource getUsersResource() {
         return keycloak.realm(realm).users();
