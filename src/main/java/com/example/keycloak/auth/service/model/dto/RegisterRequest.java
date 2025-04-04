@@ -5,11 +5,17 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class RegisterRequest {
-    @Size(min = 8, max = 20)
     @NotEmpty
-    private String username;
+    private String firstName;
+
+    @NotEmpty
+    private String lastName;
+
+    private String patronymic;
 
     @Size(min = 5, max = 50)
     @NotEmpty
@@ -20,9 +26,9 @@ public class RegisterRequest {
     @NotEmpty
     private String password;
 
-    @NotEmpty
-    private String firstName;
+    private String number;
 
-    @NotEmpty
-    private String lastName;
+    private LocalDate birthdate;
+
+    private ImageUrlDTO image;
 }

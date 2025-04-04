@@ -1,7 +1,11 @@
 package com.example.keycloak.auth.service.service;
 
 import com.example.keycloak.auth.service.exception.KeycloakException;
+import com.example.keycloak.auth.service.mapper.UserMapper;
 import com.example.keycloak.auth.service.model.dto.RegisterRequest;
+import com.example.keycloak.auth.service.model.dto.UserResponse;
+import com.example.keycloak.auth.service.model.entity.UserRole;
+import com.example.keycloak.auth.service.repository.UserRepository;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,69 +27,82 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RegistrationServiceImpl implements RegistrationService {
+public class RegistrationServiceImpl {
 
-    @Value("${app.keycloak.realm}")
+    @Value("${app.keycloak.user-realm.name}")
     private String realm;
+
+    @Value("${app.keycloak.user-realm.client-id}")
+    private String clientId;
     private final Keycloak keycloak;
+    private final UserMapper userMapper;
+    private final UserRepository userRepository;
+
+    public UserResponse createUser(RegisterRequest request, UserRole userRole) {
+        var userRepresentation = saveUserToKeycloak(request, userRole.name());
+        return saveUserToDB(request, userRepresentation, userRole.name());
+    }
 
 
-    public void createUser(RegisterRequest newUserRecord) {
+    public void createOperator(RegisterRequest request) {
+        saveUserToKeycloak(request, "operator");
+    }
 
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setEnabled(true);
-        userRepresentation.setFirstName(newUserRecord.getFirstName());
-        userRepresentation.setLastName(newUserRecord.getLastName());
-        userRepresentation.setEmail(newUserRecord.getEmail());
-        userRepresentation.setUsername(newUserRecord.getUsername());
-        userRepresentation.setEmailVerified(false);
-
+    private UserRepresentation saveUserToKeycloak(RegisterRequest request, String role) {
+        UserRepresentation userRepresentation = userMapper.toUserRepresentation(request);
 
         CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-        credentialRepresentation.setValue(newUserRecord.getPassword());
+        credentialRepresentation.setValue(request.getPassword());
         credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
 
         userRepresentation.setCredentials(List.of(credentialRepresentation));
 
         UsersResource usersResource = getUsersResource();
 
-        System.out.println(keycloak);
-        Response response = usersResource.create(userRepresentation);
-
-        log.info("Status Code " + response.getStatus());
-
-        if (!Objects.equals(201, response.getStatus())) {
-
-            throw new KeycloakException(response.getStatus());
+        try (Response response = usersResource.create(userRepresentation)) {
+            if (!Objects.equals(201, response.getStatus())) {
+                throw new KeycloakException(response.getStatus());
+            }
         }
+        userRepresentation = getUserRepresentation(usersResource, request.getEmail());
+        setUserRoles(userRepresentation, role);
+        return userRepresentation;
+    }
 
-        log.info("New user has bee created");
+    private UserResponse saveUserToDB(RegisterRequest request, UserRepresentation userRepresentation, String role) {
+        var userEntity = userMapper.toUserEntity(request, userRepresentation);
+        userEntity.setRole(role);
+        return userMapper.toUserResponse(userRepository.save(userEntity));
+    }
 
-        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(newUserRecord.getUsername(), true);
-        UserRepresentation userRepresentation1 = userRepresentations.get(0);
-//        sendVerificationEmail(userRepresentation1.getId());
+    private UserRepresentation getUserRepresentation(UsersResource usersResource, String email) {
+        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(email, true);
+        return userRepresentations.getFirst();
+    }
 
-        var client = keycloak.realm(realm).clients().findByClientId("user-client").getFirst();
-        var clientRole = keycloak.realm(realm).clients()
-                .get(client.getId())
+
+    private void setUserRoles(UserRepresentation userRepresentation, String role) {
+        var clientRepresentation = keycloak.realm(realm).clients().findByClientId(clientId).getFirst();
+        var clientRoles = keycloak.realm(realm).clients()
+                .get(clientRepresentation.getId())
                 .roles().list();
-        List<RoleRepresentation> rolesToAdd = clientRole.stream()
-                .filter(role -> role.getName().equals("user"))
+        List<RoleRepresentation> rolesToAdd = clientRoles.stream()
+                .filter(role1 -> role1.getName().equals(role))
                 .collect(Collectors.toList());
 
         keycloak.realm(realm).users()
-                .get(userRepresentation1.getId())
+                .get(userRepresentation.getId())
                 .roles()
-                .clientLevel(client.getId())
+                .clientLevel(clientRepresentation.getId())
                 .add(rolesToAdd);
     }
 
-    @Override
-    public void createOperator(RegisterRequest request) {
-
+    private void enableUser() {
+//        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(newUserRecord.getUsername(), true);
+//        UserRepresentation userRepresentation1 = userRepresentations.get(0);
+//        userRepresentation1.setEnabled(false);
     }
 
-    @Override
     public void sendVerificationEmail(String userId) {
         UsersResource usersResource = getUsersResource();
         List<UserRepresentation> userRepresentations = usersResource.searchByUsername(userId, true);
@@ -125,5 +142,4 @@ public class RegistrationServiceImpl implements RegistrationService {
     private UsersResource getUsersResource() {
         return keycloak.realm(realm).users();
     }
-
 }

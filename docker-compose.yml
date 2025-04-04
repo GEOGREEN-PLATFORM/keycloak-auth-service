@@ -29,5 +29,18 @@ services:
     depends_on:
       - postgresql-keycloak
 
+  postgresql-users-server:
+    image: postgres:16
+    hostname: postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: users-server
+      POSTGRES_USER: users-server-username
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgresql-users-server:/var/lib/postgresql-geospatial-server/data
+
 volumes:
   postgresql-keycloak: { }
+  postgresql-users-server: { }
