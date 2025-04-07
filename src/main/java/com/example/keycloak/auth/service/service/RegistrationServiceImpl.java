@@ -1,16 +1,18 @@
 package com.example.keycloak.auth.service.service;
 
+import com.example.keycloak.auth.service.exception.CustomAccessDeniedException;
 import com.example.keycloak.auth.service.exception.KeycloakException;
 import com.example.keycloak.auth.service.mapper.UserMapper;
 import com.example.keycloak.auth.service.model.dto.RegisterRequest;
 import com.example.keycloak.auth.service.model.dto.UserResponse;
 import com.example.keycloak.auth.service.model.entity.UserRole;
 import com.example.keycloak.auth.service.repository.UserRepository;
+import com.example.keycloak.auth.service.util.JwtParserUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.RolesResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -37,15 +39,11 @@ public class RegistrationServiceImpl {
     private final Keycloak keycloak;
     private final UserMapper userMapper;
     private final UserRepository userRepository;
+    private final JwtParserUtil jwtParserUtil;
 
     public UserResponse createUser(RegisterRequest request, UserRole userRole) {
         var userRepresentation = saveUserToKeycloak(request, userRole.name());
         return saveUserToDB(request, userRepresentation, userRole.name());
-    }
-
-
-    public void createOperator(RegisterRequest request) {
-        saveUserToKeycloak(request, "operator");
     }
 
     private UserRepresentation saveUserToKeycloak(RegisterRequest request, String role) {
@@ -80,7 +78,6 @@ public class RegistrationServiceImpl {
         return userRepresentations.getFirst();
     }
 
-
     private void setUserRoles(UserRepresentation userRepresentation, String role) {
         var clientRepresentation = keycloak.realm(realm).clients().findByClientId(clientId).getFirst();
         var clientRoles = keycloak.realm(realm).clients()
@@ -97,47 +94,38 @@ public class RegistrationServiceImpl {
                 .add(rolesToAdd);
     }
 
-    private void enableUser() {
-//        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(newUserRecord.getUsername(), true);
-//        UserRepresentation userRepresentation1 = userRepresentations.get(0);
-//        userRepresentation1.setEnabled(false);
+    public void changeEnableStatus(String email, boolean isEnabled) {
+        var userEntity = userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(""));
+        List<UserRepresentation> userRepresentations = getUsersResource()
+                .searchByUsername(email, true);
+        UserRepresentation userRepresentation1 = userRepresentations.get(0);
+        userRepresentation1.setEnabled(isEnabled);
+        getUsersResource().get(userRepresentation1.getId()).update(userRepresentation1);
+        userEntity.setEnabled(isEnabled);
+        userRepository.save(userEntity);
     }
 
-    public void sendVerificationEmail(String userId) {
+    public void sendVerificationEmail(String token, String email) {
+        if (!jwtParserUtil.extractBranchFromJwt(token).equals(email)) {
+            throw new CustomAccessDeniedException("Недостаточно прав");
+        }
         UsersResource usersResource = getUsersResource();
-        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(userId, true);
-        UserRepresentation userRepresentation1 = userRepresentations.get(0);
+        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(email, true);
+        UserRepresentation userRepresentation1 = userRepresentations.getFirst();
         var i = usersResource.get(userRepresentation1.getId());
         i.sendVerifyEmail();
     }
 
-
-    private RolesResource getRolesResource() {
-
-        return keycloak.realm(realm).roles();
-    }
-
-    public void deleteUser(String userId) {
+    public void forgotPassword(String token, String email) {
+        if (!jwtParserUtil.extractBranchFromJwt(token).equals(email)) {
+            throw new CustomAccessDeniedException("Недостаточно прав");
+        }
         UsersResource usersResource = getUsersResource();
-        usersResource.delete(userId);
-    }
-
-
-    public void forgotPassword(String username) {
-        UsersResource usersResource = getUsersResource();
-        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(username, true);
+        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(email, true);
         UserRepresentation userRepresentation1 = userRepresentations.get(0);
         UserResource userResource = usersResource.get(userRepresentation1.getId());
         userResource.executeActionsEmail(List.of("UPDATE_PASSWORD"));
-
     }
-
-
-    public UserResource getUser(String userId) {
-        UsersResource usersResource = getUsersResource();
-        return usersResource.get(userId);
-    }
-
 
     private UsersResource getUsersResource() {
         return keycloak.realm(realm).users();

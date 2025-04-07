@@ -6,6 +6,7 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${app.keycloak.server-url}/realms/${app.keycloak.user-realm.name}
+          jwk-set-uri: ${app.keycloak.server-url}/realms/${app.keycloak.user-realm.name}/protocol/openid-connect/certs
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/users-server}
     username: ${SPRING_DATASOURCE_USERNAME:users-server-username}
@@ -40,3 +41,7 @@ app:
       client-id: user-client
 
     server-url: ${KEYCLOAK_URL:http://localhost:8081}
+
+logging:
+  level:
+    root: INFO
