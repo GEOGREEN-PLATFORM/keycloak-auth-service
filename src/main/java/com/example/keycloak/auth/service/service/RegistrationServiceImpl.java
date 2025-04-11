@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.example.keycloak.auth.service.util.ExceptionStringUtil.USER_NOT_FOUND;
+
 
 @Service
 @RequiredArgsConstructor
@@ -95,7 +97,7 @@ public class RegistrationServiceImpl {
     }
 
     public void changeEnableStatus(String email, boolean isEnabled) {
-        var userEntity = userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(""));
+        var userEntity = userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         List<UserRepresentation> userRepresentations = getUsersResource()
                 .searchByUsername(email, true);
         UserRepresentation userRepresentation1 = userRepresentations.get(0);
@@ -109,6 +111,7 @@ public class RegistrationServiceImpl {
         if (!jwtParserUtil.extractBranchFromJwt(token).equals(email)) {
             throw new CustomAccessDeniedException("Недостаточно прав");
         }
+        userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         UsersResource usersResource = getUsersResource();
         List<UserRepresentation> userRepresentations = usersResource.searchByUsername(email, true);
         UserRepresentation userRepresentation1 = userRepresentations.getFirst();
@@ -116,10 +119,8 @@ public class RegistrationServiceImpl {
         i.sendVerifyEmail();
     }
 
-    public void forgotPassword(String token, String email) {
-        if (!jwtParserUtil.extractBranchFromJwt(token).equals(email)) {
-            throw new CustomAccessDeniedException("Недостаточно прав");
-        }
+    public void forgotPassword(String email) {
+        userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         UsersResource usersResource = getUsersResource();
         List<UserRepresentation> userRepresentations = usersResource.searchByUsername(email, true);
         UserRepresentation userRepresentation1 = userRepresentations.get(0);

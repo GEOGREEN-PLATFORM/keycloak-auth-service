@@ -19,7 +19,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class WebSecurityConfig {
-    private static final String[] ALLOWED_URLS = {"/v3/api-docs/**", "/swagger-ui/**"};
+    private static final String[] ALLOWED_URLS = {"/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/forgot-password/**",
+            "/register/user"};
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -32,7 +35,6 @@ public class WebSecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(ALLOWED_URLS).permitAll()
-                        .requestMatchers("/register/user").permitAll()
                         .anyRequest()
                         .authenticated()
                 )

@@ -18,9 +18,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
+import static com.example.keycloak.auth.service.util.ExceptionStringUtil.USER_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserServiceImpl {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final JwtParserUtil jwtParserUtil;
@@ -31,7 +33,7 @@ public class UserService {
         }
 
         UserEntity userEntity = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException(""));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
         if (userRequest.getBirthdate() != null) userEntity.setBirthdate(userRequest.getBirthdate());
         if (userRequest.getImage() != null) userEntity.setImage(userRequest.getImage());
@@ -41,6 +43,13 @@ public class UserService {
         if (userRequest.getPatronymic() != null) userEntity.setPatronymic(userRequest.getPatronymic());
 
         return userMapper.toUserResponse(userRepository.save(userEntity));
+    }
+
+    public UserResponse getUser(String email) {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+
+        return userMapper.toUserResponse(userEntity);
     }
 
     public ListUsersResponse getUsers(int page, int size, String search, String role, String status,

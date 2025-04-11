@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.ADMIN;
 import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.AUTHORIZATION;
-import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.OPERATOR;
 import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.USER;
 
 @RestController
@@ -65,10 +64,9 @@ public class RegistrationControllerImpl {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RolesAllowed({ADMIN, OPERATOR})
     @PostMapping("/forgot-password/{email}")
-    public ResponseEntity<Void> forgotPassword(@RequestHeader(AUTHORIZATION) String token, @PathVariable("email") String email) {
-        registrationServiceImpl.forgotPassword(token, email);
+    public ResponseEntity<Void> forgotPassword(@PathVariable("email") String email) {
+        registrationServiceImpl.forgotPassword(email);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
