@@ -28,7 +28,7 @@ public class UserServiceImpl {
     private final JwtParserUtil jwtParserUtil;
 
     public UserResponse updateUser(String token, String email, UserRequest userRequest) {
-        if (!jwtParserUtil.extractBranchFromJwt(token).equals(email)) {
+        if (!jwtParserUtil.extractEmailFromJwt(token).equals(email)) {
             throw new CustomAccessDeniedException("Недостаточно прав");
         }
 
@@ -42,7 +42,7 @@ public class UserServiceImpl {
         if (userRequest.getLastName() != null) userEntity.setLastName(userRequest.getLastName());
         if (userRequest.getPatronymic() != null) userEntity.setPatronymic(userRequest.getPatronymic());
 
-        return userMapper.toUserResponse(userRepository.save(userEntity));
+        return userMapper.toUserResponse(userRepository.saveAndFlush(userEntity));
     }
 
     public UserResponse getUser(String email) {

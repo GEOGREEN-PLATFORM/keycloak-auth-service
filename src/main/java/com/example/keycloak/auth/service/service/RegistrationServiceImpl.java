@@ -108,7 +108,7 @@ public class RegistrationServiceImpl {
     }
 
     public void sendVerificationEmail(String token, String email) {
-        if (!jwtParserUtil.extractBranchFromJwt(token).equals(email)) {
+        if (!jwtParserUtil.extractEmailFromJwt(token).equals(email)) {
             throw new CustomAccessDeniedException("Недостаточно прав");
         }
         userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));

@@ -5,8 +5,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
+
+import static com.example.keycloak.auth.service.util.DateUtil.ISO_8601_DATE_TIME_MILLIS_PATTERN;
+import static com.example.keycloak.auth.service.util.DateUtil.UTC;
 
 @Data
 public class UserResponse {
@@ -21,6 +24,17 @@ public class UserResponse {
     private ImageUrlDTO image;
     private String role;
     private Boolean enabled;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtil.DATE_TIME_PATTERN_FORMAT)
-    private LocalDateTime creationDate;
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = ISO_8601_DATE_TIME_MILLIS_PATTERN,
+            timezone = UTC
+    )
+    private OffsetDateTime creationDate;
+
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = ISO_8601_DATE_TIME_MILLIS_PATTERN,
+            timezone = UTC
+    )
+    private OffsetDateTime updateDate;
 }

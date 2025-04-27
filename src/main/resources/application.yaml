@@ -40,7 +40,7 @@ app:
       name: ${KEYCLOAK_REALM:geogreen}
       client-id: user-client
 
-    server-url: ${KEYCLOAK_URL:http://localhost:8081}
+    server-url: ${KEYCLOAK_URL:http://217.198.13.249:30096}
 
 logging:
   level:
