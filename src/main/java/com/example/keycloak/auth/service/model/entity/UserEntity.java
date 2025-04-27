@@ -4,17 +4,18 @@ import com.example.keycloak.auth.service.model.dto.ImageUrlDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Data
@@ -56,7 +57,21 @@ public class UserEntity {
     @Column(name = "enabled", nullable = false)
     private Boolean enabled;
 
-    @CreationTimestamp
-    @Column(name = "creation_date")
-    private LocalDateTime creationDate;
+    @Column(name = "creation_date", nullable = false)
+    private OffsetDateTime creationDate;
+
+    @Column(name = "update_date", nullable = false)
+    private OffsetDateTime updateDate;
+
+    @PrePersist
+    protected void onCreate() {
+        OffsetDateTime now = OffsetDateTime.now();
+        creationDate = now;
+        updateDate = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updateDate = OffsetDateTime.now();
+    }
 }

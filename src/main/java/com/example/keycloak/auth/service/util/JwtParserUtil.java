@@ -13,7 +13,7 @@ public class JwtParserUtil {
     private final JwtDecoder jwtDecoder;
     private static final String EMAIL = "email";
 
-    public String extractBranchFromJwt(String tokenString) {
+    public String extractEmailFromJwt(String tokenString) {
         Jwt jwt = jwtDecoder.decode(tokenString.substring(7));
         String target = jwt.getClaim(EMAIL);
         if (target == null) {
