@@ -72,4 +72,11 @@ public class RestExceptionHandler {
         var ApplicationError = new ApplicationError(NOT_FOUND_ERROR_TITLE, "Ресурс не найден");
         return new ResponseEntity<>(ApplicationError, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(CustomAccessDeniedException.class)
+    public ResponseEntity<ApplicationError> handleCustomAccessDeniedException(CustomAccessDeniedException e) {
+        logTheException(e);
+        var ApplicationError = new ApplicationError(NOT_FOUND_ERROR_TITLE, e.getMessage());
+        return new ResponseEntity<>(ApplicationError, HttpStatus.FORBIDDEN);
+    }
 }
