@@ -9,6 +9,8 @@ import com.example.keycloak.auth.service.model.entity.UserEntity;
 import com.example.keycloak.auth.service.repository.UserRepository;
 import com.example.keycloak.auth.service.util.JwtParserUtil;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -70,17 +72,57 @@ public class UserServiceImpl {
                                       LocalDate fromDate, LocalDate toDate) {
         Specification<UserEntity> spec = Specification.where(null);
 
-        if (search != null && !search.isEmpty()) {
-            String searchTerm = "%" + search.toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.or(
-                    cb.like(cb.lower(root.get("firstName")), searchTerm),
-                    cb.like(cb.lower(root.get("lastName")), searchTerm),
-                    cb.like(cb.lower(root.get("patronymic")), searchTerm)
-            ));
+        if (search != null && !search.isBlank()) {
+            String[] parts = search.trim().toLowerCase().split("\\s+");
+            spec = spec.and((root, query, cb) -> {
+                Expression<String> lastName = cb.lower(root.get("lastName"));
+                Expression<String> firstName = cb.lower(root.get("firstName"));
+                Expression<String> patronymic = cb.lower(root.get("patronymic"));
+
+                switch (Math.min(parts.length, 3)) {
+                    case 1:
+                        String term = "%" + parts[0] + "%";
+                        return cb.or(
+                                cb.like(lastName, term),
+                                cb.like(firstName, term),
+                                cb.like(patronymic, term)
+                        );
+                    case 2:
+                        String term0 = "%" + parts[0] + "%";
+                        String term1 = "%" + parts[1] + "%";
+
+                        Predicate byLastFirst = cb.and(
+                                cb.like(lastName, term0),
+                                cb.like(firstName, term1)
+                        );
+                        Predicate byLastPatronymic = cb.and(
+                                cb.like(lastName, term0),
+                                cb.like(patronymic, term1)
+                        );
+                        Predicate byFirstPatronymic = cb.and(
+                                cb.like(firstName, term0),
+                                cb.like(patronymic, term1)
+                        );
+                        return cb.or(byLastFirst, byLastPatronymic, byFirstPatronymic);
+                    case 3:
+                    default:
+                        return cb.and(
+                                cb.like(lastName, "%" + parts[0] + "%"),
+                                cb.like(firstName, "%" + parts[1] + "%"),
+                                cb.like(patronymic, "%" + parts[2] + "%")
+                        );
+                }
+            });
         }
 
-        if (role != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("role"), role));
+        if (role != null && !role.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("role"), role)
+            );
+        } else {
+            spec = spec.and((root, query, cb) ->
+                    root.get("role").in("admin", "operator")
+            );
         }
 
         if (status != null) {
