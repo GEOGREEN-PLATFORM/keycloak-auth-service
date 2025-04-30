@@ -17,6 +17,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.ADMIN;
 import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.OPERATOR;
@@ -51,8 +52,15 @@ public class UserServiceImpl {
         return userMapper.toUserResponse(userRepository.saveAndFlush(userEntity));
     }
 
-    public UserResponse getUser(String email) {
+    public UserResponse getUserByEmail(String email) {
         UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+
+        return userMapper.toUserResponse(userEntity);
+    }
+
+    public UserResponse getUserById(UUID id) {
+        UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
         return userMapper.toUserResponse(userEntity);
