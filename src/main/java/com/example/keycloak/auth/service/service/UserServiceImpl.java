@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
+import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.ADMIN;
+import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.OPERATOR;
+import static com.example.keycloak.auth.service.util.ExceptionStringUtil.FORBIDDEN;
 import static com.example.keycloak.auth.service.util.ExceptionStringUtil.USER_NOT_FOUND;
 
 @Service
@@ -28,12 +31,15 @@ public class UserServiceImpl {
     private final JwtParserUtil jwtParserUtil;
 
     public UserResponse updateUser(String token, String email, UserRequest userRequest) {
-        if (!jwtParserUtil.extractEmailFromJwt(token).equals(email)) {
-            throw new CustomAccessDeniedException("Недостаточно прав");
-        }
-
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+
+        if (!jwtParserUtil.extractEmailFromJwt(token).equals(email)) {
+            if (!(ADMIN.equals(jwtParserUtil.extractRoleFromJwt(token))
+                    && OPERATOR.equals(userEntity.getRole()))) {
+                throw new CustomAccessDeniedException(FORBIDDEN);
+            }
+        }
 
         if (userRequest.getBirthdate() != null) userEntity.setBirthdate(userRequest.getBirthdate());
         if (userRequest.getImage() != null) userEntity.setImage(userRequest.getImage());
