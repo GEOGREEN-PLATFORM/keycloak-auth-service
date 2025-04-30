@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.ADMIN;
 import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.AUTHORIZATION;
@@ -42,10 +43,14 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(token, email, request));
     }
 
-    @RolesAllowed({ADMIN, OPERATOR, USER})
-    @GetMapping("/{email}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable("email") String email) {
-        return ResponseEntity.ok(userService.getUser(email));
+    @GetMapping("/by-email/{email}")
+    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable("email") String email) {
+        return ResponseEntity.ok(userService.getUserByEmail(email));
+    }
+
+    @GetMapping("/by-id/{id}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable("id") UUID id) {
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @RolesAllowed({ADMIN, OPERATOR, USER})
