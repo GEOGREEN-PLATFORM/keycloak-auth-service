@@ -1,10 +1,8 @@
 package com.example.keycloak.auth.service.model.dto;
 
-import com.example.keycloak.auth.service.util.DateUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -19,8 +17,12 @@ public class UserResponse {
     private String patronymic;
     private String email;
     private String number;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtil.DATE_PATTERN_FORMAT)
-    private LocalDate birthdate;
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = ISO_8601_DATE_TIME_MILLIS_PATTERN,
+            timezone = UTC
+    )
+    private OffsetDateTime birthdate;
     private ImageUrlDTO image;
     private String role;
     private Boolean enabled;

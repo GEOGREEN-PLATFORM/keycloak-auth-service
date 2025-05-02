@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -16,6 +16,6 @@ public class UserRequest {
     private String lastName;
     private String patronymic;
     private String number;
-    private LocalDate birthdate;
+    private OffsetDateTime birthdate;
     private ImageUrlDTO image;
 }

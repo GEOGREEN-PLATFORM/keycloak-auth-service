@@ -44,7 +44,7 @@ public class UserServiceImpl {
             }
         }
 
-        if (userRequest.getBirthdate() != null) userEntity.setBirthdate(userRequest.getBirthdate());
+        if (userRequest.getBirthdate() != null) userEntity.setBirthdate(userRequest.getBirthdate().toLocalDate());
         if (userRequest.getImage() != null) userEntity.setImage(userRequest.getImage());
         if (userRequest.getNumber() != null) userEntity.setNumber(userRequest.getNumber());
         if (userRequest.getFirstName() != null) userEntity.setFirstName(userRequest.getFirstName());
