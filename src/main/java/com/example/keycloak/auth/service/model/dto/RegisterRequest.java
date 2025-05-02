@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 @Data
 public class RegisterRequest {
@@ -28,7 +28,7 @@ public class RegisterRequest {
 
     private String number;
 
-    private LocalDate birthdate;
+    private OffsetDateTime birthdate;
 
     private ImageUrlDTO image;
 }
