@@ -30,7 +30,7 @@ import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.USE
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
+@RequestMapping("/user/search")
 @SecurityRequirement(name = AUTHORIZATION)
 public class UserController {
     private final UserServiceImpl userService;
