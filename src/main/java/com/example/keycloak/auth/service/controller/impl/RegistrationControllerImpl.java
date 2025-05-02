@@ -24,8 +24,8 @@ import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.USE
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/register")
-@Tag(name = "/register", description = "Регистрация пользователей")
+@RequestMapping("/user/register")
+@Tag(name = "/user/register", description = "Регистрация пользователей")
 @SecurityRequirement(name = AUTHORIZATION)
 public class RegistrationControllerImpl {
     private final RegistrationServiceImpl registrationServiceImpl;

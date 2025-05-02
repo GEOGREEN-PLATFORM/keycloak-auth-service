@@ -1,5 +1,6 @@
 package com.example.keycloak.auth.service.exception;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,10 +67,17 @@ public class RestExceptionHandler {
         return new ResponseEntity<>(ApplicationError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
+    @ExceptionHandler({NoResourceFoundException.class})
     public ResponseEntity<ApplicationError> handleNoResourceFoundException(Exception e) {
         logTheException(e);
         var ApplicationError = new ApplicationError(NOT_FOUND_ERROR_TITLE, "Ресурс не найден");
+        return new ResponseEntity<>(ApplicationError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({EntityNotFoundException.class})
+    public ResponseEntity<ApplicationError> handleEntityNotFoundException(EntityNotFoundException e) {
+        logTheException(e);
+        var ApplicationError = new ApplicationError(NOT_FOUND_ERROR_TITLE, e.getMessage());
         return new ResponseEntity<>(ApplicationError, HttpStatus.NOT_FOUND);
     }
 
