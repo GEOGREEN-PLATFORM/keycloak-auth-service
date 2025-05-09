@@ -1,6 +1,7 @@
 package com.example.keycloak.auth.service.exception;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.ws.rs.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,8 +54,8 @@ public class RestExceptionHandler {
         return new ResponseEntity<>(ApplicationError, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApplicationError> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+    @ExceptionHandler({HttpMessageNotReadableException.class, BadRequestException.class})
+    public ResponseEntity<ApplicationError> handleHttpMessageNotReadableException(Exception e) {
         logTheException(e);
         var ApplicationError = new ApplicationError(BAD_REQUEST_ERROR_TITLE, "Неверное тело запроса");
         return new ResponseEntity<>(ApplicationError, HttpStatus.BAD_REQUEST);

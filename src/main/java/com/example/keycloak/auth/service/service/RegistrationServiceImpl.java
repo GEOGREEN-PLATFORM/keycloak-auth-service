@@ -23,6 +23,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.example.keycloak.auth.service.util.ExceptionStringUtil.USER_NOT_FOUND;
@@ -35,13 +38,16 @@ public class RegistrationServiceImpl {
 
     @Value("${app.keycloak.user-realm.name}")
     private String realm;
-
     @Value("${app.keycloak.user-realm.client-id}")
     private String clientId;
+    @Value("${app.keycloak.mail.verification-time}")
+    private Long verificationTime;
+
     private final Keycloak keycloak;
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final JwtParserUtil jwtParserUtil;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public UserResponse createUser(RegisterRequest request, UserRole userRole) {
         var userRepresentation = saveUserToKeycloak(request, userRole.name());
@@ -114,17 +120,34 @@ public class RegistrationServiceImpl {
         userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         UsersResource usersResource = getUsersResource();
         List<UserRepresentation> userRepresentations = usersResource.searchByUsername(email, true);
-        UserRepresentation userRepresentation1 = userRepresentations.getFirst();
-        var i = usersResource.get(userRepresentation1.getId());
-        i.sendVerifyEmail();
+        UserRepresentation userRepresentation = userRepresentations.getFirst();
+        usersResource.get(userRepresentation.getId()).sendVerifyEmail();
+
+        scheduler.schedule(() -> updateVerification(email), verificationTime, TimeUnit.MINUTES);
+    }
+
+    private UserRepresentation getUserRepresentation(String email) {
+        UsersResource usersResource = getUsersResource();
+        List<UserRepresentation> userRepresentations = usersResource.searchByUsername(email, true);
+        return userRepresentations.getFirst();
+    }
+
+    private void updateVerification(String email) {
+        UserRepresentation userRepresentation = getUserRepresentation(email);
+        var isEmailVerified = userRepresentation.isEmailVerified();
+        if (isEmailVerified) {
+            var userEntity = userRepository.findByEmail(email).orElseThrow();
+            userEntity.setIsEmailVerified(true);
+            userRepository.save(userEntity);
+        }
     }
 
     public void forgotPassword(String email) {
         userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         UsersResource usersResource = getUsersResource();
         List<UserRepresentation> userRepresentations = usersResource.searchByUsername(email, true);
-        UserRepresentation userRepresentation1 = userRepresentations.get(0);
-        UserResource userResource = usersResource.get(userRepresentation1.getId());
+        UserRepresentation userRepresentation = userRepresentations.getFirst();
+        UserResource userResource = usersResource.get(userRepresentation.getId());
         userResource.executeActionsEmail(List.of("UPDATE_PASSWORD"));
     }
 
