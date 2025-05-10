@@ -21,6 +21,7 @@ public interface UserMapper {
     @Mapping(target = "lastName", source = "request.lastName")
     @Mapping(target = "email", source = "request.email")
     @Mapping(target = "enabled", expression = "java(representation.isEnabled())")
+    @Mapping(target = "isEmailVerified", expression = "java(false)")
     UserEntity toUserEntity(RegisterRequest request, UserRepresentation representation);
 
     UserResponse toUserResponse(UserEntity userEntity);

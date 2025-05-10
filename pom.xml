@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.example</groupId>
 	<artifactId>keycloak-auth-service</artifactId>
-	<version>0.2.1</version>
+	<version>0.2.2</version>
 	<name>keycloak-auth-service</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>

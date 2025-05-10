@@ -41,6 +41,8 @@ app:
       client-id: user-client
 
     server-url: ${KEYCLOAK_URL:http://217.198.13.249:30096}
+    mail:
+      verification-time: 10
 
 logging:
   level:

@@ -63,6 +63,9 @@ public class UserEntity {
     @Column(name = "update_date", nullable = false)
     private OffsetDateTime updateDate;
 
+    @Column(name = "is_email_verified")
+    private Boolean isEmailVerified;
+
     @PrePersist
     protected void onCreate() {
         OffsetDateTime now = OffsetDateTime.now();
