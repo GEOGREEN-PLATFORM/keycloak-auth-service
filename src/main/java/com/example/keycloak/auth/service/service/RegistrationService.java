@@ -34,7 +34,7 @@ import static com.example.keycloak.auth.service.util.ExceptionStringUtil.USER_NO
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RegistrationServiceImpl {
+public class RegistrationService {
 
     @Value("${app.keycloak.user-realm.name}")
     private String realm;

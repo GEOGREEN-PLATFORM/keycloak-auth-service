@@ -3,7 +3,7 @@ package com.example.keycloak.auth.service.controller.impl;
 import com.example.keycloak.auth.service.model.dto.RegisterRequest;
 import com.example.keycloak.auth.service.model.dto.UserResponse;
 import com.example.keycloak.auth.service.model.entity.UserRole;
-import com.example.keycloak.auth.service.service.RegistrationServiceImpl;
+import com.example.keycloak.auth.service.service.RegistrationService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
@@ -28,45 +28,45 @@ import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.USE
 @Tag(name = "/user/register", description = "Регистрация пользователей")
 @SecurityRequirement(name = AUTHORIZATION)
 public class RegistrationControllerImpl {
-    private final RegistrationServiceImpl registrationServiceImpl;
+    private final RegistrationService registrationService;
 
     @PostMapping("/user")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody RegisterRequest request) {
-        var response = registrationServiceImpl.createUser(request, UserRole.user);
+        var response = registrationService.createUser(request, UserRole.user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @RolesAllowed({ADMIN})
     @PostMapping("/operator")
     public ResponseEntity<UserResponse> createOperator(@Valid @RequestBody RegisterRequest request) {
-        var response = registrationServiceImpl.createUser(request, UserRole.operator);
+        var response = registrationService.createUser(request, UserRole.operator);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @RolesAllowed({ADMIN})
     @PostMapping("/admin")
     public ResponseEntity<UserResponse> createAdmin(@Valid @RequestBody RegisterRequest request) {
-        var response = registrationServiceImpl.createUser(request, UserRole.admin);
+        var response = registrationService.createUser(request, UserRole.admin);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @RolesAllowed({USER})
     @PostMapping("/verify-email/{email}")
     public ResponseEntity<Void> verifyEmail(@RequestHeader(AUTHORIZATION) String token, @PathVariable("email") String email) {
-        registrationServiceImpl.sendVerificationEmail(token, email);
+        registrationService.sendVerificationEmail(token, email);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RolesAllowed({ADMIN})
     @PostMapping("/{email}/enabled/{isEnabled}")
     public ResponseEntity<Void> changeEnabledStatus(@PathVariable("email") String email, @PathVariable("isEnabled") Boolean isEnabled) {
-        registrationServiceImpl.changeEnableStatus(email, isEnabled);
+        registrationService.changeEnableStatus(email, isEnabled);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/forgot-password/{email}")
     public ResponseEntity<Void> forgotPassword(@PathVariable("email") String email) {
-        registrationServiceImpl.forgotPassword(email);
+        registrationService.forgotPassword(email);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -85,7 +85,7 @@ public class RestExceptionHandler {
     @ExceptionHandler(CustomAccessDeniedException.class)
     public ResponseEntity<ApplicationError> handleCustomAccessDeniedException(CustomAccessDeniedException e) {
         logTheException(e);
-        var ApplicationError = new ApplicationError(NOT_FOUND_ERROR_TITLE, e.getMessage());
+        var ApplicationError = new ApplicationError("Forbidden", e.getMessage());
         return new ResponseEntity<>(ApplicationError, HttpStatus.FORBIDDEN);
     }
 }
