@@ -18,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class WebSecurityConfig {
     private static final String[] ALLOWED_URLS = {"/v3/api-docs/**",
             "/swagger-ui/**",
+            "/actuator/**",
             "/user/register/forgot-password/**",
             "/user/register/user"};
 
