@@ -1,4 +1,4 @@
-package com.example.keycloak.auth.service.service;
+package com.example.keycloak.auth.service.service.impl;
 
 import com.example.keycloak.auth.service.exception.CustomAccessDeniedException;
 import com.example.keycloak.auth.service.mapper.UserMapper;
@@ -7,6 +7,7 @@ import com.example.keycloak.auth.service.model.dto.UserRequest;
 import com.example.keycloak.auth.service.model.dto.UserResponse;
 import com.example.keycloak.auth.service.model.entity.UserEntity;
 import com.example.keycloak.auth.service.repository.UserRepository;
+import com.example.keycloak.auth.service.service.UserService;
 import com.example.keycloak.auth.service.util.JwtParserUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Expression;
@@ -28,11 +29,12 @@ import static com.example.keycloak.auth.service.util.ExceptionStringUtil.USER_NO
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final JwtParserUtil jwtParserUtil;
 
+    @Override
     public UserResponse updateUser(String token, String email, UserRequest userRequest) {
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
@@ -54,6 +56,7 @@ public class UserServiceImpl {
         return userMapper.toUserResponse(userRepository.saveAndFlush(userEntity));
     }
 
+    @Override
     public UserResponse getUserByEmail(String email) {
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
@@ -61,6 +64,7 @@ public class UserServiceImpl {
         return userMapper.toUserResponse(userEntity);
     }
 
+    @Override
     public UserResponse getUserById(UUID id) {
         UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
@@ -68,6 +72,7 @@ public class UserServiceImpl {
         return userMapper.toUserResponse(userEntity);
     }
 
+    @Override
     public ListUsersResponse getUsers(int page, int size, String search, String role, String status,
                                       LocalDate fromDate, LocalDate toDate) {
         Specification<UserEntity> spec = Specification.where(null);

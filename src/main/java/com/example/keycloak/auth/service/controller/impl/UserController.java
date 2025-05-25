@@ -3,7 +3,8 @@ package com.example.keycloak.auth.service.controller.impl;
 import com.example.keycloak.auth.service.model.dto.ListUsersResponse;
 import com.example.keycloak.auth.service.model.dto.UserRequest;
 import com.example.keycloak.auth.service.model.dto.UserResponse;
-import com.example.keycloak.auth.service.service.UserServiceImpl;
+import com.example.keycloak.auth.service.service.UserService;
+import com.example.keycloak.auth.service.service.impl.UserServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
@@ -33,7 +34,7 @@ import static com.example.keycloak.auth.service.util.AuthorizationStringUtil.USE
 @RequestMapping("/user/search")
 @SecurityRequirement(name = AUTHORIZATION)
 public class UserController {
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
     @RolesAllowed({ADMIN, OPERATOR, USER})
     @PatchMapping("/{email}")
