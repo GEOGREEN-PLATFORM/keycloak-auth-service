@@ -39,4 +39,5 @@ public class UserResponse {
             timezone = UTC
     )
     private OffsetDateTime updateDate;
+    private Boolean isEmailVerified;
 }
