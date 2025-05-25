@@ -19,8 +19,6 @@ public class CustomJwtAuthenticationConverter extends JwtAuthenticationConverter
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         Collection<GrantedAuthority> authorities = grantedAuthoritiesConverter.convert(jwt);
-        //todo проверок сюда на то что такие поля вообще есть
-        // Извлекаем роли из `resource_access.user-client.roles`
         Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
 
         Map<String, Object> userClient = (Map<String, Object>) resourceAccess.get("user-client");
