@@ -40,8 +40,24 @@ app:
       name: ${KEYCLOAK_REALM:geogreen}
       client-id: user-client
 
-    server-url: ${KEYCLOAK_URL:http://localhost:8081}
+    server-url: ${KEYCLOAK_URL:http://217.198.13.249:30096}
+    mail:
+      verification-time: 10
 
 logging:
   level:
     root: ${LOG_LEVEL:INFO}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
