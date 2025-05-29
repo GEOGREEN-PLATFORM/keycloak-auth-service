@@ -4,6 +4,7 @@ import com.example.keycloak_auth_service.model.dto.RegisterRequest;
 import com.example.keycloak_auth_service.model.dto.UserResponse;
 import com.example.keycloak_auth_service.model.entity.UserRole;
 import com.example.keycloak_auth_service.service.RegistrationService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
@@ -30,12 +31,18 @@ import static com.example.keycloak_auth_service.util.AuthorizationStringUtil.USE
 public class RegistrationControllerImpl {
     private final RegistrationService registrationService;
 
+    @Operation(
+            summary = "Регистрация пользователя с ролью user"
+    )
     @PostMapping("/user")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody RegisterRequest request) {
         var response = registrationService.createUser(request, UserRole.user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(
+            summary = "Регистрация пользователя с ролью operator"
+    )
     @RolesAllowed({ADMIN})
     @PostMapping("/operator")
     public ResponseEntity<UserResponse> createOperator(@Valid @RequestBody RegisterRequest request) {
@@ -43,6 +50,9 @@ public class RegistrationControllerImpl {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(
+            summary = "Регистрация пользователя с ролью admin"
+    )
     @RolesAllowed({ADMIN})
     @PostMapping("/admin")
     public ResponseEntity<UserResponse> createAdmin(@Valid @RequestBody RegisterRequest request) {
@@ -50,6 +60,9 @@ public class RegistrationControllerImpl {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(
+            summary = "Верификация почты с помощью письма на почту"
+    )
     @RolesAllowed({USER})
     @PostMapping("/verify-email/{email}")
     public ResponseEntity<Void> verifyEmail(@RequestHeader(AUTHORIZATION) String token, @PathVariable("email") String email) {
@@ -57,6 +70,9 @@ public class RegistrationControllerImpl {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Блокировка/разблокировка пользователя"
+    )
     @RolesAllowed({ADMIN})
     @PostMapping("/{email}/enabled/{isEnabled}")
     public ResponseEntity<Void> changeEnabledStatus(@PathVariable("email") String email, @PathVariable("isEnabled") Boolean isEnabled) {
@@ -64,6 +80,9 @@ public class RegistrationControllerImpl {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Сброс пароля с помощью письма на почту"
+    )
     @PostMapping("/forgot-password/{email}")
     public ResponseEntity<Void> forgotPassword(@PathVariable("email") String email) {
         registrationService.forgotPassword(email);

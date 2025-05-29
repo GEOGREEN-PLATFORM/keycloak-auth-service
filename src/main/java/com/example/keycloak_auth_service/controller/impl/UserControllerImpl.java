@@ -4,6 +4,7 @@ import com.example.keycloak_auth_service.model.dto.ListUsersResponse;
 import com.example.keycloak_auth_service.model.dto.UserRequest;
 import com.example.keycloak_auth_service.model.dto.UserResponse;
 import com.example.keycloak_auth_service.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
@@ -35,6 +36,9 @@ import static com.example.keycloak_auth_service.util.AuthorizationStringUtil.USE
 public class UserControllerImpl {
     private final UserService userService;
 
+    @Operation(
+            summary = "Обновление информации о пользователе"
+    )
     @RolesAllowed({ADMIN, OPERATOR, USER})
     @PatchMapping("/{email}")
     public ResponseEntity<UserResponse> updateUser(@RequestHeader(AUTHORIZATION) String token,
@@ -43,16 +47,25 @@ public class UserControllerImpl {
         return ResponseEntity.ok(userService.updateUser(token, email, request));
     }
 
+    @Operation(
+            summary = "Получение пользователя по почте"
+    )
     @GetMapping("/by-email/{email}")
     public ResponseEntity<UserResponse> getUserByEmail(@PathVariable("email") String email) {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
+    @Operation(
+            summary = "Получение пользователя по ID"
+    )
     @GetMapping("/by-id/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @Operation(
+            summary = "Получение списка всех пользователей"
+    )
     @RolesAllowed({ADMIN, OPERATOR, USER})
     @GetMapping(params = {"page", "size"})
     public ResponseEntity<ListUsersResponse> getUsers(@NotNull @RequestParam("page") int page,
